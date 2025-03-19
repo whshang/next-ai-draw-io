@@ -60,7 +60,10 @@ export function extractDiagramXML(xml_svg_string: string): string {
         const decoder = new TextDecoder('utf-8');
         const decodedString = decoder.decode(decompressedData);
 
-        return decodedString;
+        // Decode URL-encoded content (equivalent to Python's urllib.parse.unquote)
+        const urlDecodedString = decodeURIComponent(decodedString);
+
+        return urlDecodedString;
 
     } catch (error) {
         console.error("Error extracting diagram XML:", error);
