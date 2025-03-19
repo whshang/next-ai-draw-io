@@ -67,10 +67,20 @@ export default function Home() {
                         <div className="bg-amber-300 w-full h-[400px]">{imgData &&
                             <>
                                 {/* <img src={imgData} /> */}
-                                <div className="bg-blue-100 h-[400px]">
-                                    <h1>Extracted XML</h1>
-                                    <div>imgData</div>
-                                    <div>{extractDiagramXML(imgData)}</div>
+                                <div className="bg-blue-100 h-[400px] p-4 overflow-auto">
+                                    <h1 className="font-semibold mb-2">Extracted XML</h1>
+                                    {(() => {
+                                        try {
+                                            const extractedXml = extractDiagramXML(imgData);
+                                            return <pre className="whitespace-pre-wrap text-sm">{extractedXml}</pre>;
+                                        } catch (error) {
+                                            return (
+                                                <div className="text-red-600">
+                                                    Error extracting XML: {error instanceof Error ? error.message : 'Unknown error'}
+                                                </div>
+                                            );
+                                        }
+                                    })()}
                                 </div>
                             </>}
                             <Button onClick={handleExport}>Export</Button>

@@ -1,9 +1,9 @@
 import * as pako from 'pako';
 
-export async function extractDiagramXML(xml_svg_string: string): Promise<string> {
+export function extractDiagramXML(xml_svg_string: string): string {
     try {
         // 1. Parse the SVG string (using built-in DOMParser in a browser-like environment)
-        const svgString = atob(xml_svg_string.slice(26))
+        const svgString = atob(xml_svg_string.slice(26));
         const parser = new DOMParser();
         const svgDoc = parser.parseFromString(svgString, "image/svg+xml");
         const svgElement = svgDoc.querySelector('svg');
