@@ -1,4 +1,5 @@
 import { google } from "@ai-sdk/google";
+import { openai } from "@ai-sdk/openai";
 import { streamText } from "ai";
 import { z } from "zod";
 import { readFileSync } from 'fs';
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
 
   // Read and escape the guide content
   const systemMessage = `
-You are a helpful assistant that can create, edit, and display flowcharts using draw.io through xml strings.
+You are a helpful assistant that can create, edit, and display diagram using draw.io through xml strings.
 You can use the following tools:
 ---Tool1---
 tool name: display_flow_chart
@@ -27,15 +28,15 @@ parameters: {
 }
 ---Tool2---
 tool name: fetch_flow_chart
-description: Get the current flowchart XML from draw.io
+description: Get the current diagram XML from draw.io
 parameters: {}
 ---End of tools---
 
-When you need to modify the flowchart, you need fetch the current flowchart XML from draw.io and then modify it and display it again.
+When you need to modify the diagram, you need fetch the current diagram XML from draw.io and then modify it and display it again.
 here is a guide for the XML format: ${guide}
-You can use the tools to create and manipulate flowcharts.
+You can use the tools to create and manipulate diagram.
 You can also answer questions and provide explanations.
-If user want you to draw something rather than flowchart, you can use the combination of the shape to draw it.
+If user want you to draw something rather than diagram, you can use the combination of the shape to draw it.
   `;
 
   // Add system message if only user message is provided
@@ -44,7 +45,8 @@ If user want you to draw something rather than flowchart, you can use the combin
     : messages;
 
   const result = streamText({
-    model: google("gemini-2.0-flash"),
+    // model: google("gemini-2.0-flash"),
+    model: openai("gpt-4o"),
     messages: enhancedMessages,
     tools: {
       // Client-side tool that will be executed on the client
