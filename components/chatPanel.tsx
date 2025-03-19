@@ -11,10 +11,9 @@ import { Loader2, Send } from "lucide-react"
 import { useChat } from '@ai-sdk/react';
 import { ToolInvocation } from 'ai';
 
-
 interface ChatPanelProps {
     onDisplayChart: (xml: string) => void;
-    onFetchChart: () => Promise<string>; // Change return type to Promise<string>
+    onFetchChart: () => Promise<string>;
 }
 
 export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelProps) {
@@ -54,6 +53,64 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
         }
     }
 
+    // Helper function to render tool invocations
+    const renderToolInvocation = (toolInvocation: any) => {
+        const callId = toolInvocation.toolCallId;
+
+        switch (toolInvocation.toolName) {
+            case 'display_flow_chart': {
+                switch (toolInvocation.state) {
+                    case 'call':
+                    case 'partial-call':
+                        return (
+                            <div key={callId} className="mt-2 text-sm bg-yellow-50 p-2 rounded border border-yellow-200">
+                                <div className="font-medium">Displaying flowchart...</div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                    Tool: display_flow_chart
+                                </div>
+                            </div>
+                        );
+                    case 'result':
+                        return (
+                            <div key={callId} className="mt-2 text-sm bg-green-50 p-2 rounded border border-green-200">
+                                <div className="font-medium">Flowchart displayed</div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                    Result: {toolInvocation.result}
+                                </div>
+                            </div>
+                        );
+                }
+                break;
+            }
+            case 'fetch_flow_chart': {
+                switch (toolInvocation.state) {
+                    case 'call':
+                    case 'partial-call':
+                        return (
+                            <div key={callId} className="mt-2 text-sm bg-blue-50 p-2 rounded border border-blue-200">
+                                <div className="font-medium">Fetching current flowchart...</div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                    Tool: fetch_flow_chart
+                                </div>
+                            </div>
+                        );
+                    case 'result':
+                        return (
+                            <div key={callId} className="mt-2 text-sm bg-green-50 p-2 rounded border border-green-200">
+                                <div className="font-medium">Flowchart fetched</div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                    Successfully retrieved current diagram
+                                </div>
+                            </div>
+                        );
+                }
+                break;
+            }
+            default:
+                return null;
+        }
+    };
+
     return (
         <Card className="h-full flex flex-col">
             <CardHeader className="pb-2">
@@ -73,8 +130,24 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
                                     className={`inline-block px-4 py-2 rounded-lg max-w-[85%] break-words ${message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                                         }`}
                                 >
-                                    {message.content}
+                                    {/* Render message content based on parts if available */}
+                                    {message.parts ? (
+                                        message.parts.map((part, index) => {
+                                            switch (part.type) {
+                                                case 'text':
+                                                    return <div key={index}>{part.text}</div>;
+                                                case 'tool-invocation':
+                                                    return renderToolInvocation(part.toolInvocation);
+                                                default:
+                                                    return null;
+                                            }
+                                        })
+                                    ) : (
+                                        // Fallback to simple content for older format
+                                        message.content
+                                    )}
                                 </div>
+                                {/* Legacy support for function_call format */}
                                 {(message as any).function_call && (
                                     <div className="mt-2 text-left">
                                         <div className="text-xs text-gray-500">
