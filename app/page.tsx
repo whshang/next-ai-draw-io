@@ -16,6 +16,7 @@ export default function Home() {
                 format: "xmlsvg",
             });
         }
+        console.log("chartXML from page", chartXML);
     };
 
     const loadDiagram = (chart: string) => {
@@ -40,11 +41,15 @@ export default function Home() {
                     }}
                 />
             </div>
+            <Button
+                onClick={handleExport}
+            >export </Button>
             <div className="w-1/3 p-1 border-gray-300">
                 <ChatPanel
                     onDisplayChart={(xml) => loadDiagram(xml)}
                     onFetchChart={() => {
                         handleExport();
+                        console.log("chartXML from page", chartXML);
                         return chartXML;
                     }}
                 />

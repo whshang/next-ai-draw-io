@@ -11,7 +11,6 @@ export function extractDiagramXML(xml_svg_string: string): string {
         if (!svgElement) {
             throw new Error("No SVG element found in the input string.");
         }
-        console.log("svgElement", svgElement);
         // 2. Extract the 'content' attribute
         const encodedContent = svgElement.getAttribute('content');
 
@@ -34,10 +33,8 @@ export function extractDiagramXML(xml_svg_string: string): string {
         if (!diagramElement) {
             throw new Error("No diagram element found");
         }
-        console.log("diagramElement", diagramElement);
         // 5. Extract base64 encoded data
         const base64EncodedData = diagramElement.textContent;
-        console.log("base64EncodedData", base64EncodedData);
 
         if (!base64EncodedData) {
             throw new Error("No encoded data found in the diagram element");
