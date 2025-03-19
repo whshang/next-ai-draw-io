@@ -21,16 +21,17 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
     const { messages, input, handleInputChange, handleSubmit, isLoading, error, addToolResult } = useChat({
         async onToolCall({ toolCall }) {
             console.log("Tool call:", toolCall);
+            console.log("Tool call name:", toolCall.toolName);
+            console.log("Tool call arguments:", toolCall.args);
+
             if (toolCall.toolName === "display_flow_chart") {
                 const { xml } = toolCall.args as { xml: string };
                 onDisplayChart(xml);
+                return "Displaying the flowchart...";
             } else if (toolCall.toolName === "fetch_flow_chart") {
                 const currentXML = await onFetchChart();
                 console.log("Current XML:", currentXML);
-                addToolResult({
-                    toolCallId: toolCall.toolCallId,
-                    result: currentXML
-                });
+                return currentXML;
             }
         },
         onError: (error) => {
