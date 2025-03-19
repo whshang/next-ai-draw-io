@@ -9,6 +9,8 @@ import ChatPanel from "@/components/chatPanel";
 export default function Home() {
     const drawioRef = useRef<DrawIoEmbedRef>(null);
     const [chartXML, setChartXML] = useState<string>("");
+    // Add a ref to store the resolver function
+    const resolverRef = useRef<((value: string) => void) | null>(null);
 
     const handleExport = () => {
         if (drawioRef.current) {
@@ -16,7 +18,6 @@ export default function Home() {
                 format: "xmlsvg",
             });
         }
-        console.log("chartXML from page", chartXML);
     };
 
     const loadDiagram = (chart: string) => {
@@ -32,7 +33,15 @@ export default function Home() {
             <div className="w-2/3 p-1">
                 <DrawIoEmbed
                     ref={drawioRef}
-                    onExport={(data) => setChartXML(extractDiagramXML(data.data))}
+                    onExport={(data) => {
+                        const extractedXML = extractDiagramXML(data.data);
+                        setChartXML(extractedXML);
+                        // If there's a pending resolver, resolve it with the fresh XML
+                        if (resolverRef.current) {
+                            resolverRef.current(extractedXML);
+                            resolverRef.current = null;
+                        }
+                    }}
                     urlParameters={{
                         spin: true,
                         libraries: false,
@@ -48,9 +57,12 @@ export default function Home() {
                 <ChatPanel
                     onDisplayChart={(xml) => loadDiagram(xml)}
                     onFetchChart={() => {
-                        handleExport();
-                        console.log("chartXML from page", chartXML);
-                        return chartXML;
+                        return new Promise<string>((resolve) => {
+                            // Store the resolver so onExport can use it
+                            resolverRef.current = resolve;
+                            // Trigger the export
+                            handleExport();
+                        });
                     }}
                 />
             </div>

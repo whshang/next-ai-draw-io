@@ -14,7 +14,7 @@ import { ToolInvocation } from 'ai';
 
 interface ChatPanelProps {
     onDisplayChart: (xml: string) => void;
-    onFetchChart: () => string;
+    onFetchChart: () => Promise<string>; // Change return type to Promise<string>
 }
 
 export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelProps) {
@@ -25,7 +25,7 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
                 const { xml } = toolCall.args as { xml: string };
                 onDisplayChart(xml);
             } else if (toolCall.toolName === "fetch_flow_chart") {
-                const currentXML = onFetchChart();
+                const currentXML = await onFetchChart();
                 console.log("Current XML:", currentXML);
                 addToolResult({
                     toolCallId: toolCall.toolCallId,
@@ -95,7 +95,7 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
             <CardFooter className="pt-2">
                 <form onSubmit={onFormSubmit} className="w-full flex space-x-2">
                     <Input
-                        value={"what you can see on the drawio panel?"}
+                        value={input}
                         onChange={handleInputChange}
                         placeholder="Describe what changes you want to make to the diagram..."
                         disabled={isLoading}
