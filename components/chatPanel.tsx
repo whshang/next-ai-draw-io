@@ -1,20 +1,41 @@
 "use client"
 
 import type React from "react"
-
 import { useRef, useEffect } from "react"
-import { useChat } from "@ai-sdk/react"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Loader2, Send } from "lucide-react"
+import { useChat } from '@ai-sdk/react';
+import { ToolInvocation } from 'ai';
 
 
-export default function ChatPanel() {
-    const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-        api: "/api/chat",
-        maxSteps: 5, // Allow multiple steps for complex diagram generation
+interface ChatPanelProps {
+    onDisplayChart: (xml: string) => void;
+    onFetchChart: () => string;
+}
+
+export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelProps) {
+    const { messages, input, handleInputChange, handleSubmit, isLoading, error, addToolResult } = useChat({
+        async onToolCall({ toolCall }) {
+            console.log("Tool call:", toolCall);
+            if (toolCall.toolName === "display_flow_chart") {
+                const { xml } = toolCall.args as { xml: string };
+                onDisplayChart(xml);
+            } else if (toolCall.toolName === "fetch_flow_chart") {
+                const currentXML = onFetchChart();
+                console.log("Current XML:", currentXML);
+                addToolResult({
+                    toolCallId: toolCall.toolCallId,
+                    result: currentXML
+                });
+            }
+        },
+        onError: (error) => {
+            console.error("Chat error:", error);
+        }
     })
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -25,10 +46,9 @@ export default function ChatPanel() {
         }
     }, [messages])
 
-
     const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        if (input.trim()) {
+        if (input.trim() && !isLoading) {
             handleSubmit(e)
         }
     }
@@ -42,7 +62,7 @@ export default function ChatPanel() {
                 <ScrollArea className="h-full pr-4">
                     {messages.length === 0 ? (
                         <div className="text-center text-gray-500 mt-8">
-                            <p>Start a conversation to generate a diagram.</p>
+                            <p>Start a conversation to generate or modify diagrams.</p>
                             <p className="text-sm mt-2">Try: "Create a flowchart for user authentication"</p>
                         </div>
                     ) : (
@@ -54,15 +74,20 @@ export default function ChatPanel() {
                                 >
                                     {message.content}
                                 </div>
-                                {message.toolInvocations?.map((tool, index) => (
-                                    <div key={index} className="mt-2 text-left">
+                                {(message as any).function_call && (
+                                    <div className="mt-2 text-left">
                                         <div className="text-xs text-gray-500">
-                                            {tool.state === "call" ? "Generating diagram..." : "Diagram generated"}
+                                            Using tool: {(message as any).function_call.name}...
                                         </div>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         ))
+                    )}
+                    {error && (
+                        <div className="text-red-500 text-sm mt-2">
+                            Error: {error.message}
+                        </div>
                     )}
                     <div ref={messagesEndRef} />
                 </ScrollArea>
@@ -72,7 +97,7 @@ export default function ChatPanel() {
                     <Input
                         value={input}
                         onChange={handleInputChange}
-                        placeholder="Describe the diagram you want to create..."
+                        placeholder="Describe what changes you want to make to the diagram..."
                         disabled={isLoading}
                         className="flex-grow"
                     />
@@ -84,4 +109,3 @@ export default function ChatPanel() {
         </Card>
     )
 }
-
