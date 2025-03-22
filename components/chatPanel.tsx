@@ -15,7 +15,7 @@ interface ChatPanelProps {
 }
 
 export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelProps) {
-    const { messages, input, handleInputChange, handleSubmit, status, error, setInput, setMessages } = useChat({
+    const { messages, input, handleInputChange, handleSubmit, status, error, setInput, setMessages, data } = useChat({
         maxSteps: 5,
         async onToolCall({ toolCall }) {
             console.log("Tool call:", toolCall);
@@ -32,13 +32,12 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
         }
     })
     const messagesEndRef = useRef<HTMLDivElement>(null)
-
     // Scroll to bottom when messages change
     useEffect(() => {
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
         }
-        console.log("Messages updated:", messages);
+        console.log("Data updated:", data);
     }, [messages])
 
     const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -65,48 +64,24 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
         const callId = toolInvocation.toolCallId;
 
         switch (toolInvocation.toolName) {
-            case 'display_flow_chart': {
+            case 'display_diagram': {
                 switch (toolInvocation.state) {
                     case 'call':
                     case 'partial-call':
                         return (
                             <div key={callId} className="mt-2 text-sm bg-yellow-50 p-2 rounded border border-yellow-200">
-                                <div className="font-medium">Displaying flowchart...</div>
+                                <div className="font-medium">Displaying diagram...</div>
                                 <div className="text-xs text-gray-500 mt-1">
-                                    Tool: display_flow_chart
+                                    Tool: display_diagram
                                 </div>
                             </div>
                         );
                     case 'result':
                         return (
                             <div key={callId} className="mt-2 text-sm bg-green-50 p-2 rounded border border-green-200">
-                                <div className="font-medium">Flowchart displayed</div>
+                                <div className="font-medium">Diagram displayed</div>
                                 <div className="text-xs text-gray-500 mt-1">
                                     Result: {toolInvocation.result}
-                                </div>
-                            </div>
-                        );
-                }
-                break;
-            }
-            case 'fetch_flow_chart': {
-                switch (toolInvocation.state) {
-                    case 'call':
-                    case 'partial-call':
-                        return (
-                            <div key={callId} className="mt-2 text-sm bg-blue-50 p-2 rounded border border-blue-200">
-                                <div className="font-medium">Fetching current flowchart...</div>
-                                <div className="text-xs text-gray-500 mt-1">
-                                    Tool: fetch_flow_chart
-                                </div>
-                            </div>
-                        );
-                    case 'result':
-                        return (
-                            <div key={callId} className="mt-2 text-sm bg-green-50 p-2 rounded border border-green-200">
-                                <div className="font-medium">Flowchart fetched</div>
-                                <div className="text-xs text-gray-500 mt-1">
-                                    Successfully retrieved current diagram
                                 </div>
                             </div>
                         );
@@ -134,7 +109,7 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
                         messages.map((message) => (
                             <div key={message.id} className={`mb-4 ${message.role === "user" ? "text-right" : "text-left"}`}>
                                 <div
-                                    className={`inline-block px-4 py-2 rounded-lg max-w-[85%] break-words ${message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                                    className={`inline-block px-4 py-2 whitespace-pre-wrap text-sm rounded-lg max-w-[85%] break-words ${message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                                         }`}
                                 >
                                     {/* Render message content based on parts if available */}

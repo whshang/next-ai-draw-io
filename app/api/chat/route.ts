@@ -43,11 +43,13 @@ Note that:
   // Add system message if only user message is provided
   const enhancedMessages = messages.length === 1
     ? [{ role: "system", content: systemMessage }, ...messages]
+
     : messages;
 
   const result = streamText({
     // model: google("gemini-2.0-flash"),
     model: openai("gpt-4o"),
+    toolCallStreaming: true,
     messages: enhancedMessages,
     tools: {
       // Client-side tool that will be executed on the client
