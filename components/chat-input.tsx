@@ -3,16 +3,17 @@
 import React, { useCallback, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Send } from "lucide-react"
+import { Loader2, Send, Trash } from "lucide-react"
 
 interface ChatInputProps {
     input: string
     status: "submitted" | "streaming" | "ready" | "error"
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
     onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+    setMessages: (messages: any[]) => void
 }
 
-export function ChatInput({ input, status, onSubmit, onChange }: ChatInputProps) {
+export function ChatInput({ input, status, onSubmit, onChange, setMessages }: ChatInputProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
     // Auto-resize textarea based on content
@@ -51,7 +52,17 @@ export function ChatInput({ input, status, onSubmit, onChange }: ChatInputProps)
                 aria-label="Chat input"
                 className="min-h-[80px] resize-none transition-all duration-200"
             />
-            <div className="flex justify-end">
+            <div className="flex justify-between gap-2">
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="default"
+                    onClick={() => setMessages([])}
+                    title="Clear messages"
+                >
+                    <Trash className="mr-2 h-4 w-4" />
+                    Start a new conversation
+                </Button>
                 <Button
                     type="submit"
                     disabled={status === "streaming" || !input.trim()}

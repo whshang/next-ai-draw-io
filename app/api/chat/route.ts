@@ -21,22 +21,23 @@ export async function POST(req: Request) {
 You are a helpful assistant that can create, edit, and display diagram using draw.io through xml strings.
 You can use the following tools:
 ---Tool1---
-tool name: display_flow_chart
-description: write a xml and display it on draw.io
+tool name: display_diagram
+description: Display a diagram on draw.io
 parameters: {
   xml: string
 }
----Tool2---
-tool name: fetch_flow_chart
-description: Get the current diagram XML from draw.io
-parameters: {}
 ---End of tools---
 
-When you need to modify the diagram, you need fetch the current diagram XML from draw.io and then modify it and display it again.
-here is a guide for the XML format: ${guide}
-You can use the tools to create and manipulate diagram.
+Here is a guide for the XML format:
+"""md
+${guide}
+"""
+You can use the tools to create and manipulate diagrams.
 You can also answer questions and provide explanations.
-If user want you to draw something rather than diagram, you can use the combination of the shape to draw it.
+Note that:
+- If the user wants you to draw something rather than a diagram, you can use the combination of the shapes to draw it.
+- Consider the layout of the diagram and the shapes used to avoid overlapping.
+- Ensure that the XML strings are well-formed and valid.
   `;
 
   // Add system message if only user message is provided
@@ -50,17 +51,12 @@ If user want you to draw something rather than diagram, you can use the combinat
     messages: enhancedMessages,
     tools: {
       // Client-side tool that will be executed on the client
-      display_flow_chart: {
-        description: "Display a flowchart on draw.io",
+      display_diagram: {
+        description: "Display a diagram on draw.io",
         parameters: z.object({
           xml: z.string().describe("XML string to be displayed on draw.io")
         })
       },
-      // Client-side tool that will be executed on the client
-      fetch_flow_chart: {
-        description: "Get the current flowchart XML from draw.io",
-        parameters: z.object({})
-      }
     },
     temperature: 0,
   });

@@ -5,6 +5,7 @@ import { useRef, useEffect } from "react"
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Button } from "@/components/ui/button"
 import { useChat } from '@ai-sdk/react';
 import { ChatInput } from "@/components/chat-input"
 
@@ -14,20 +15,16 @@ interface ChatPanelProps {
 }
 
 export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelProps) {
-    const { messages, input, handleInputChange, handleSubmit, status, error, addToolResult } = useChat({
+    const { messages, input, handleInputChange, handleSubmit, status, error, setInput, setMessages } = useChat({
+        maxSteps: 5,
         async onToolCall({ toolCall }) {
             console.log("Tool call:", toolCall);
             console.log("Tool call name:", toolCall.toolName);
             console.log("Tool call arguments:", toolCall.args);
-
-            if (toolCall.toolName === "display_flow_chart") {
+            if (toolCall.toolName === "display_diagram") {
                 const { xml } = toolCall.args as { xml: string };
                 onDisplayChart(xml);
                 return "Successfully displayed the flowchart.";
-            } else if (toolCall.toolName === "fetch_flow_chart") {
-                const currentXML = await onFetchChart();
-                console.log("Current XML:", currentXML);
-                return currentXML;
             }
         },
         onError: (error) => {
@@ -41,11 +38,24 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
         }
+        console.log("Messages updated:", messages);
     }, [messages])
 
     const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         if (input.trim() && status !== "streaming") {
+            setInput(
+                `
+                Current diagram XML:
+                """xml
+                ${onFetchChart()}
+                """
+                User input:
+                """md
+                ${input}
+                """
+                `
+            )
             handleSubmit(e)
         }
     }
@@ -169,6 +179,7 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
                     status={status}
                     onSubmit={onFormSubmit}
                     onChange={handleInputChange}
+                    setMessages={setMessages}
                 />
             </CardFooter>
         </Card>
