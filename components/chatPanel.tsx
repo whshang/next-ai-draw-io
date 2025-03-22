@@ -8,14 +8,16 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { useChat } from '@ai-sdk/react';
 import { ChatInput } from "@/components/chat-input"
-
+import { convertToLegalXml } from "@/lib/utils"
 interface ChatPanelProps {
     onDisplayChart: (xml: string) => void;
     onFetchChart: () => Promise<string>;
 }
 
 export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelProps) {
-    const [previousXml, setPreviousXml] = useState<string>("");
+    // Add a step counter to track updates
+    const stepCounterRef = useRef<number>(0);
+    // Remove the currentXmlRef and related useEffect
     const { messages, input, handleInputChange, handleSubmit, status, error, setInput, setMessages, data } = useChat({
         maxSteps: 5,
         async onToolCall({ toolCall }) {
@@ -41,28 +43,32 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
         console.log("Data updated:", data);
     }, [messages])
 
-    const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const onFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         if (input.trim() && status !== "streaming") {
-            setInput(
-                `
-                Current diagram XML:
-                """xml
-                ${onFetchChart()}
-                """
-                User input:
-                """md
-                ${input}
-                """
-                `
-            )
-            handleSubmit(e)
+            try {
+                // Fetch chart data before setting input
+                const chartXml = await onFetchChart();
+
+                // Now use the fetched data to set input
+                setInput(
+                    `
+                    Current diagram XML:
+                    """xml
+                    ${chartXml}
+                    """
+                    User input:
+                    """md
+                    ${input}
+                    """
+                    `
+                )
+                handleSubmit(e)
+            } catch (error) {
+                console.error("Error fetching chart data:", error);
+            }
         }
     }
-
-
-
-
 
     // Helper function to render tool invocations
     const renderToolInvocation = (toolInvocation: any) => {
@@ -73,24 +79,24 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
                 switch (toolInvocation.state) {
                     case 'partial-call': {
                         const currentXml = toolInvocation.args?.xml || "";
-                        const shouldShowPartialArgs = currentXml &&
-                            (!previousXml || Math.abs(currentXml.length - previousXml.length) > 50);
 
-                        // Update previous XML for next comparison
-                        if (currentXml) {
-                            setPreviousXml(currentXml);
+                        // Increment the step counter
+                        stepCounterRef.current += 1;
+                        // Log the current step
+
+                        // Determine whether to show details based on a simple threshold
+                        // Rather than comparing lengths (which can cause re-renders)
+                        if (stepCounterRef.current >= 20 && stepCounterRef.current % 20 === 0) {
+                            onDisplayChart(convertToLegalXml(currentXml));
                         }
-
                         return (
                             <div key={callId} className="mt-2 text-sm bg-blue-50 p-2 rounded border border-blue-200">
-                                <div className="font-medium">Preparing to display diagram...</div>
+                                <div className="font-medium">Generating diagram...</div>
                                 <div className="text-xs text-gray-500 mt-1">
                                     Tool: display_diagram
-                                    {shouldShowPartialArgs && toolInvocation.args && (
-                                        <div className="mt-1 font-mono text-xs">
-                                            Partial args: {JSON.stringify(toolInvocation.args, null, 2)}
-                                        </div>
-                                    )}
+                                    <div className="mt-1 font-mono text-xs">
+                                        onDisplayChart
+                                    </div>
                                 </div>
                             </div>
                         );
@@ -110,7 +116,7 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
                     case 'result':
                         return (
                             <div key={callId} className="mt-2 text-sm bg-green-50 p-2 rounded border border-green-200">
-                                <div className="font-medium">Diagram displayed</div>
+                                <div className="font-medium">Diagram generated</div>
                                 <div className="text-xs text-gray-500 mt-1">
                                     Result: {toolInvocation.result}
                                 </div>
