@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState } from "react"
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -15,6 +15,7 @@ interface ChatPanelProps {
 }
 
 export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelProps) {
+    const [previousXml, setPreviousXml] = useState<string>("");
     const { messages, input, handleInputChange, handleSubmit, status, error, setInput, setMessages, data } = useChat({
         maxSteps: 5,
         async onToolCall({ toolCall }) {
@@ -59,6 +60,10 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
         }
     }
 
+
+
+
+
     // Helper function to render tool invocations
     const renderToolInvocation = (toolInvocation: any) => {
         const callId = toolInvocation.toolCallId;
@@ -66,13 +71,39 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
         switch (toolInvocation.toolName) {
             case 'display_diagram': {
                 switch (toolInvocation.state) {
+                    case 'partial-call': {
+                        const currentXml = toolInvocation.args?.xml || "";
+                        const shouldShowPartialArgs = currentXml &&
+                            (!previousXml || Math.abs(currentXml.length - previousXml.length) > 50);
+
+                        // Update previous XML for next comparison
+                        if (currentXml) {
+                            setPreviousXml(currentXml);
+                        }
+
+                        return (
+                            <div key={callId} className="mt-2 text-sm bg-blue-50 p-2 rounded border border-blue-200">
+                                <div className="font-medium">Preparing to display diagram...</div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                    Tool: display_diagram
+                                    {shouldShowPartialArgs && toolInvocation.args && (
+                                        <div className="mt-1 font-mono text-xs">
+                                            Partial args: {JSON.stringify(toolInvocation.args, null, 2)}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    }
                     case 'call':
-                    case 'partial-call':
                         return (
                             <div key={callId} className="mt-2 text-sm bg-yellow-50 p-2 rounded border border-yellow-200">
                                 <div className="font-medium">Displaying diagram...</div>
                                 <div className="text-xs text-gray-500 mt-1">
                                     Tool: display_diagram
+                                    <div className="mt-1 font-mono text-xs">
+                                        Args: {JSON.stringify(toolInvocation.args, null, 2)}
+                                    </div>
                                 </div>
                             </div>
                         );
