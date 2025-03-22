@@ -9,7 +9,6 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Loader2, Send } from "lucide-react"
 import { useChat } from '@ai-sdk/react';
-import { ToolInvocation } from 'ai';
 
 interface ChatPanelProps {
     onDisplayChart: (xml: string) => void;
@@ -112,7 +111,7 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
     };
 
     return (
-        <Card className="h-full flex flex-col">
+        <Card className="h-full flex flex-col rounded-none">
             <CardHeader className="pb-2">
                 <CardTitle>Chat with Diagram Generator</CardTitle>
             </CardHeader>

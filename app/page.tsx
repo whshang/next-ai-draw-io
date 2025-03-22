@@ -50,9 +50,6 @@ export default function Home() {
                     }}
                 />
             </div>
-            <Button
-                onClick={handleExport}
-            >export </Button>
             <div className="w-1/3 p-1 border-gray-300">
                 <ChatPanel
                     onDisplayChart={(xml) => loadDiagram(xml)}
