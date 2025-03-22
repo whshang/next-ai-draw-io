@@ -14,7 +14,7 @@ interface ChatPanelProps {
 }
 
 export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelProps) {
-    const { messages, input, handleInputChange, handleSubmit, isLoading, error, addToolResult } = useChat({
+    const { messages, input, handleInputChange, handleSubmit, status, error, addToolResult } = useChat({
         async onToolCall({ toolCall }) {
             console.log("Tool call:", toolCall);
             console.log("Tool call name:", toolCall.toolName);
@@ -23,7 +23,7 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
             if (toolCall.toolName === "display_flow_chart") {
                 const { xml } = toolCall.args as { xml: string };
                 onDisplayChart(xml);
-                return "Displaying the flowchart...";
+                return "Successfully displayed the flowchart.";
             } else if (toolCall.toolName === "fetch_flow_chart") {
                 const currentXML = await onFetchChart();
                 console.log("Current XML:", currentXML);
@@ -45,7 +45,7 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
 
     const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        if (input.trim() && !isLoading) {
+        if (input.trim() && status !== "streaming") {
             handleSubmit(e)
         }
     }
@@ -166,7 +166,7 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
             <CardFooter className="p-2">
                 <ChatInput
                     input={input}
-                    isLoading={isLoading}
+                    status={status}
                     onSubmit={onFormSubmit}
                     onChange={handleInputChange}
                 />

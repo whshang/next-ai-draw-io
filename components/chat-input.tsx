@@ -7,12 +7,12 @@ import { Loader2, Send } from "lucide-react"
 
 interface ChatInputProps {
     input: string
-    isLoading: boolean
+    status: "submitted" | "streaming" | "ready" | "error"
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
     onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
 }
 
-export function ChatInput({ input, isLoading, onSubmit, onChange }: ChatInputProps) {
+export function ChatInput({ input, status, onSubmit, onChange }: ChatInputProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
     // Auto-resize textarea based on content
@@ -33,7 +33,7 @@ export function ChatInput({ input, isLoading, onSubmit, onChange }: ChatInputPro
         if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
             e.preventDefault()
             const form = e.currentTarget.closest("form")
-            if (form && input.trim() && !isLoading) {
+            if (form && input.trim() && status !== "streaming") {
                 form.requestSubmit()
             }
         }
@@ -47,18 +47,18 @@ export function ChatInput({ input, isLoading, onSubmit, onChange }: ChatInputPro
                 onChange={onChange}
                 onKeyDown={handleKeyDown}
                 placeholder="Describe what changes you want to make to the diagram... (Press Cmd/Ctrl + Enter to send)"
-                disabled={isLoading}
+                disabled={status === "streaming"}
                 aria-label="Chat input"
                 className="min-h-[80px] resize-none transition-all duration-200"
             />
             <div className="flex justify-end">
                 <Button
                     type="submit"
-                    disabled={isLoading || !input.trim()}
+                    disabled={status === "streaming" || !input.trim()}
                     className="transition-opacity"
-                    aria-label={isLoading ? "Sending message..." : "Send message"}
+                    aria-label={status === "streaming" ? "Sending message..." : "Send message"}
                 >
-                    {isLoading ? (
+                    {status === "streaming" ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                         <Send className="mr-2 h-4 w-4" />
