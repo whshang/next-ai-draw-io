@@ -3,12 +3,10 @@
 import type React from "react"
 import { useRef, useEffect } from "react"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Loader2, Send } from "lucide-react"
 import { useChat } from '@ai-sdk/react';
+import { ChatInput } from "@/components/chat-input"
 
 interface ChatPanelProps {
     onDisplayChart: (xml: string) => void;
@@ -111,8 +109,8 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
     };
 
     return (
-        <Card className="h-full flex flex-col rounded-none">
-            <CardHeader className="pb-2">
+        <Card className="h-full flex flex-col rounded-none py-0">
+            <CardHeader className="p-2 text-center">
                 <CardTitle>Chat with Diagram Generator</CardTitle>
             </CardHeader>
             <CardContent className="flex-grow overflow-hidden p-4">
@@ -165,19 +163,13 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
                     <div ref={messagesEndRef} />
                 </ScrollArea>
             </CardContent>
-            <CardFooter className="pt-2">
-                <form onSubmit={onFormSubmit} className="w-full flex space-x-2">
-                    <Input
-                        value={input}
-                        onChange={handleInputChange}
-                        placeholder="Describe what changes you want to make to the diagram..."
-                        disabled={isLoading}
-                        className="flex-grow"
-                    />
-                    <Button type="submit" disabled={isLoading || !input.trim()}>
-                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    </Button>
-                </form>
+            <CardFooter className="p-2">
+                <ChatInput
+                    input={input}
+                    isLoading={isLoading}
+                    onSubmit={onFormSubmit}
+                    onChange={handleInputChange}
+                />
             </CardFooter>
         </Card>
     )
