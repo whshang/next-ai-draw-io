@@ -272,6 +272,9 @@ export function ChatInput({
                             <DialogHeader>
                                 <DialogTitle>Diagram History</DialogTitle>
                                 <DialogDescription>
+                                    Here saved each diagram before AI
+                                    modification.
+                                    <br />
                                     Click on a diagram to restore it
                                 </DialogDescription>
                             </DialogHeader>
@@ -299,7 +302,7 @@ export function ChatInput({
                                                     }`}
                                                     width={200}
                                                     height={100}
-                                                    className="object-cover w-full h-full"
+                                                    className="object-contain w-full h-full p-1"
                                                 />
                                             </div>
                                             <div className="text-xs text-center mt-1 text-gray-500">
