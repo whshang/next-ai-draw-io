@@ -204,19 +204,7 @@ export default function ChatPanel({
                             </div>
                         );
                     case "result":
-                        return (
-                            <div
-                                key={callId}
-                                className="mt-2 text-sm bg-green-50 p-2 rounded border border-green-200"
-                            >
-                                <div className="font-medium">
-                                    Diagram generated
-                                </div>
-                                <div className="text-xs text-gray-500 mt-1">
-                                    Result: {toolInvocation.result}
-                                </div>
-                            </div>
-                        );
+                        return null;
                 }
                 break;
             }
