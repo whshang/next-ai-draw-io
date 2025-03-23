@@ -29,6 +29,8 @@ export default function ChatPanel({
     const stepCounterRef = useRef<number>(0);
     // Add state for file attachments
     const [files, setFiles] = useState<FileList | undefined>(undefined);
+    // Add state to control visibility of prompt examples panel
+    const [showExamples, setShowExamples] = useState<boolean>(true);
 
     // Remove the currentXmlRef and related useEffect
     const {
@@ -70,6 +72,9 @@ export default function ChatPanel({
         e.preventDefault();
         if (input.trim() && status !== "streaming") {
             try {
+                // Hide examples panel after sending a message
+                setShowExamples(false);
+
                 // Fetch chart data before setting input
                 const chartXml = await onFetchChart();
 
@@ -101,6 +106,30 @@ export default function ChatPanel({
     // Helper function to handle file changes
     const handleFileChange = (newFiles: FileList | undefined) => {
         setFiles(newFiles);
+    };
+
+    // New utility function to create a FileList from a File
+    const createFileList = (file: File): FileList => {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        return dt.files;
+    };
+
+    // New handler for the "Replicate this flowchart" button
+    const handleReplicateFlowchart = async () => {
+        setInput("Replicate this flowchart.");
+
+        try {
+            // Fetch the example image
+            const response = await fetch("/example.png");
+            const blob = await response.blob();
+            const file = new File([blob], "example.png", { type: "image/png" });
+
+            // Set the file to the files state
+            setFiles(createFileList(file));
+        } catch (error) {
+            console.error("Error loading example image:", error);
+        }
     };
 
     // Helper function to render tool invocations
@@ -301,6 +330,30 @@ export default function ChatPanel({
                     <div ref={messagesEndRef} />
                 </ScrollArea>
             </CardContent>
+
+            {/* Conditionally render Prompt Examples Panel */}
+            {showExamples && (
+                <div className="px-4 py-2 border-t border-b border-gray-100">
+                    <p className="text-sm text-gray-500 mb-2">
+                        Try these examples:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1 px-2 rounded"
+                            onClick={() => setInput("Draw a cat for me.")}
+                        >
+                            Draw a cat for me.
+                        </button>
+                        <button
+                            className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1 px-2 rounded"
+                            onClick={handleReplicateFlowchart}
+                        >
+                            Replicate this flowchart
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <CardFooter className="p-2">
                 <ChatInput
                     input={input}
