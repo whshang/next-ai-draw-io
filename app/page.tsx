@@ -34,16 +34,6 @@ export default function Home() {
         }
     };
 
-    // Add function to add current diagram to history
-    const addToHistory = () => {
-        if (latestSvg && chartXML) {
-            setDiagramHistory((prev) => [
-                ...prev,
-                { svg: latestSvg, xml: chartXML },
-            ]);
-        }
-    };
-
     return (
         <div className="flex h-screen bg-gray-100">
             <div className="w-2/3 p-1">
@@ -54,6 +44,11 @@ export default function Home() {
                         setChartXML(extractedXML);
                         // Store the latest SVG data
                         setLatestSvg(data.data);
+                        // Directly update diagramHistory with the new data
+                        setDiagramHistory((prev) => [
+                            ...prev,
+                            { svg: data.data, xml: extractedXML },
+                        ]);
                         // If there's a pending resolver, resolve it with the fresh XML
                         if (resolverRef.current) {
                             resolverRef.current(extractedXML);
@@ -80,7 +75,7 @@ export default function Home() {
                         });
                     }}
                     diagramHistory={diagramHistory}
-                    onAddToHistory={addToHistory}
+                    onAddToHistory={() => {}}
                 />
             </div>
         </div>

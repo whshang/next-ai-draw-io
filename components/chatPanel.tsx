@@ -99,9 +99,6 @@ export default function ChatPanel({
                     experimental_attachments: files,
                 });
 
-                // Add current diagram to history after submission
-                onAddToHistory();
-
                 // Clear files after submission
                 setFiles(undefined);
             } catch (error) {
