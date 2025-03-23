@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef, useEffect } from "react";
+import React, { useCallback, useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Send, RotateCcw, Image as ImageIcon, X } from "lucide-react";
@@ -35,6 +35,7 @@ export function ChatInput({
 }: ChatInputProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isDragging, setIsDragging] = useState(false);
 
     // Auto-resize textarea based on content
     const adjustTextareaHeight = useCallback(() => {
@@ -48,34 +49,6 @@ export function ChatInput({
     useEffect(() => {
         adjustTextareaHeight();
     }, [input, adjustTextareaHeight]);
-
-    // Handle clipboard paste events
-    const handlePaste = useCallback(
-        (e: React.ClipboardEvent) => {
-            if (!onFileChange) return;
-
-            const items = e.clipboardData.items;
-            const imageItems = Array.from(items).filter(
-                (item) => item.type.indexOf("image") !== -1
-            );
-
-            if (imageItems.length > 0) {
-                e.preventDefault();
-
-                // Convert clipboard image to File
-                const file = imageItems[0].getAsFile();
-                if (file) {
-                    // Create a new FileList-like object
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-
-                    // Pass to the existing file handler
-                    onFileChange(dataTransfer.files);
-                }
-            }
-        },
-        [onFileChange]
-    );
 
     // Handle keyboard shortcuts
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -110,8 +83,55 @@ export function ChatInput({
         fileInputRef.current?.click();
     };
 
+    // Handle drag events
+    const handleDragOver = (e: React.DragEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+
+        if (status === "streaming") return;
+
+        const droppedFiles = e.dataTransfer.files;
+
+        // Only process image files
+        if (droppedFiles.length > 0) {
+            const imageFiles = Array.from(droppedFiles).filter((file) =>
+                file.type.startsWith("image/")
+            );
+
+            if (imageFiles.length > 0 && onFileChange) {
+                // Create a new FileList-like object with only image files
+                const dt = new DataTransfer();
+                imageFiles.forEach((file) => dt.items.add(file));
+                onFileChange(dt.files);
+            }
+        }
+    };
+
     return (
-        <form onSubmit={onSubmit} className="w-full space-y-2">
+        <form
+            onSubmit={onSubmit}
+            className={`w-full space-y-2 ${
+                isDragging
+                    ? "border-2 border-dashed border-primary p-4 rounded-lg bg-muted/20"
+                    : ""
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
             {/* File preview area */}
             {files && files.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2 p-2 bg-muted/50 rounded-md">
@@ -135,7 +155,7 @@ export function ChatInput({
                             <button
                                 type="button"
                                 onClick={clearFiles}
-                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute -top-2 -right-2 bg-destructive rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                                 aria-label="Remove file"
                             >
                                 <X className="h-3 w-3" />
@@ -150,7 +170,6 @@ export function ChatInput({
                 value={input}
                 onChange={onChange}
                 onKeyDown={handleKeyDown}
-                onPaste={handlePaste}
                 placeholder="Describe what changes you want to make to the diagram... (Press Cmd/Ctrl + Enter to send)"
                 disabled={status === "streaming"}
                 aria-label="Chat input"
