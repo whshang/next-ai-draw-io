@@ -1,19 +1,26 @@
-"use client"
+"use client";
 
-import React, { useCallback, useRef, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Send, Trash, Image as ImageIcon, X } from "lucide-react"
-import Image from "next/image"
+import React, { useCallback, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Send, RotateCcw, Image as ImageIcon, X } from "lucide-react";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import Image from "next/image";
 
 interface ChatInputProps {
-    input: string
-    status: "submitted" | "streaming" | "ready" | "error"
-    onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
-    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
-    setMessages: (messages: any[]) => void
-    files?: FileList
-    onFileChange?: (files: FileList | undefined) => void
+    input: string;
+    status: "submitted" | "streaming" | "ready" | "error";
+    onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+    setMessages: (messages: any[]) => void;
+    onDisplayChart: (xml: string) => void;
+    files?: FileList;
+    onFileChange?: (files: FileList | undefined) => void;
 }
 
 export function ChatInput({
@@ -22,57 +29,58 @@ export function ChatInput({
     onSubmit,
     onChange,
     setMessages,
+    onDisplayChart,
     files,
-    onFileChange
+    onFileChange,
 }: ChatInputProps) {
-    const textareaRef = useRef<HTMLTextAreaElement>(null)
-    const fileInputRef = useRef<HTMLInputElement>(null)
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Auto-resize textarea based on content
     const adjustTextareaHeight = useCallback(() => {
-        const textarea = textareaRef.current
+        const textarea = textareaRef.current;
         if (textarea) {
-            textarea.style.height = "auto"
-            textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`
+            textarea.style.height = "auto";
+            textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
         }
-    }, [])
+    }, []);
 
     useEffect(() => {
-        adjustTextareaHeight()
-    }, [input, adjustTextareaHeight])
+        adjustTextareaHeight();
+    }, [input, adjustTextareaHeight]);
 
     // Handle keyboard shortcuts
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-            e.preventDefault()
-            const form = e.currentTarget.closest("form")
+            e.preventDefault();
+            const form = e.currentTarget.closest("form");
             if (form && input.trim() && status !== "streaming") {
-                form.requestSubmit()
+                form.requestSubmit();
             }
         }
-    }
+    };
 
     // Handle file changes
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (onFileChange) {
-            onFileChange(e.target.files || undefined)
+            onFileChange(e.target.files || undefined);
         }
-    }
+    };
 
     // Clear file selection
     const clearFiles = () => {
         if (fileInputRef.current) {
-            fileInputRef.current.value = ''
+            fileInputRef.current.value = "";
         }
         if (onFileChange) {
-            onFileChange(undefined)
+            onFileChange(undefined);
         }
-    }
+    };
 
     // Trigger file input click
     const triggerFileInput = () => {
-        fileInputRef.current?.click()
-    }
+        fileInputRef.current?.click();
+    };
 
     return (
         <form onSubmit={onSubmit} className="w-full space-y-2">
@@ -82,7 +90,7 @@ export function ChatInput({
                     {Array.from(files).map((file, index) => (
                         <div key={index} className="relative group">
                             <div className="w-20 h-20 border rounded-md overflow-hidden bg-muted">
-                                {file.type.startsWith('image/') ? (
+                                {file.type.startsWith("image/") ? (
                                     <Image
                                         src={URL.createObjectURL(file)}
                                         alt={file.name}
@@ -120,19 +128,37 @@ export function ChatInput({
                 className="min-h-[80px] resize-none transition-all duration-200"
             />
 
-            <div className="flex justify-between gap-2">
+            <div className="flex items-center gap-2">
+                <div className="mr-auto">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                        setMessages([]);
+                                        onDisplayChart(`<mxfile host="embed.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36" version="26.1.1">
+                                            <diagram name="Page-1" id="NsivuNt5aJDXaP8udwGv">
+                                                <mxGraphModel dx="394" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+                                                    <root>
+                                                    </root>
+                                                </mxGraphModel>
+                                            </diagram>
+                                        </mxfile>`);
+                                    }}
+                                >
+                                    <RotateCcw className="mr-2 h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                Clear current conversation and diagram
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
                 <div className="flex gap-2">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="default"
-                        onClick={() => setMessages([])}
-                        title="Clear messages"
-                    >
-                        <Trash className="mr-2 h-4 w-4" />
-                        Start a new conversation
-                    </Button>
-
                     <Button
                         type="button"
                         variant="outline"
@@ -159,7 +185,11 @@ export function ChatInput({
                     type="submit"
                     disabled={status === "streaming" || !input.trim()}
                     className="transition-opacity"
-                    aria-label={status === "streaming" ? "Sending message..." : "Send message"}
+                    aria-label={
+                        status === "streaming"
+                            ? "Sending message..."
+                            : "Send message"
+                    }
                 >
                     {status === "streaming" ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -170,5 +200,5 @@ export function ChatInput({
                 </Button>
             </div>
         </form>
-    )
+    );
 }

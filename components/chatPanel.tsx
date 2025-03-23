@@ -225,6 +225,7 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
                     onSubmit={onFormSubmit}
                     onChange={handleInputChange}
                     setMessages={setMessages}
+                    onDisplayChart={onDisplayChart}
                     files={files}
                     onFileChange={handleFileChange}
                 />
