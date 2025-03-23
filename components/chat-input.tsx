@@ -3,7 +3,8 @@
 import React, { useCallback, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Send, Trash } from "lucide-react"
+import { Loader2, Send, Trash, Image as ImageIcon, X } from "lucide-react"
+import Image from "next/image"
 
 interface ChatInputProps {
     input: string
@@ -11,10 +12,21 @@ interface ChatInputProps {
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
     onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
     setMessages: (messages: any[]) => void
+    files?: FileList
+    onFileChange?: (files: FileList | undefined) => void
 }
 
-export function ChatInput({ input, status, onSubmit, onChange, setMessages }: ChatInputProps) {
+export function ChatInput({
+    input,
+    status,
+    onSubmit,
+    onChange,
+    setMessages,
+    files,
+    onFileChange
+}: ChatInputProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     // Auto-resize textarea based on content
     const adjustTextareaHeight = useCallback(() => {
@@ -40,8 +52,63 @@ export function ChatInput({ input, status, onSubmit, onChange, setMessages }: Ch
         }
     }
 
+    // Handle file changes
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (onFileChange) {
+            onFileChange(e.target.files || undefined)
+        }
+    }
+
+    // Clear file selection
+    const clearFiles = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ''
+        }
+        if (onFileChange) {
+            onFileChange(undefined)
+        }
+    }
+
+    // Trigger file input click
+    const triggerFileInput = () => {
+        fileInputRef.current?.click()
+    }
+
     return (
         <form onSubmit={onSubmit} className="w-full space-y-2">
+            {/* File preview area */}
+            {files && files.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2 p-2 bg-muted/50 rounded-md">
+                    {Array.from(files).map((file, index) => (
+                        <div key={index} className="relative group">
+                            <div className="w-20 h-20 border rounded-md overflow-hidden bg-muted">
+                                {file.type.startsWith('image/') ? (
+                                    <Image
+                                        src={URL.createObjectURL(file)}
+                                        alt={file.name}
+                                        width={80}
+                                        height={80}
+                                        className="object-cover w-full h-full"
+                                    />
+                                ) : (
+                                    <div className="flex items-center justify-center h-full text-xs text-center p-1">
+                                        {file.name}
+                                    </div>
+                                )}
+                            </div>
+                            <button
+                                type="button"
+                                onClick={clearFiles}
+                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                aria-label="Remove file"
+                            >
+                                <X className="h-3 w-3" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+
             <Textarea
                 ref={textareaRef}
                 value={input}
@@ -52,17 +119,42 @@ export function ChatInput({ input, status, onSubmit, onChange, setMessages }: Ch
                 aria-label="Chat input"
                 className="min-h-[80px] resize-none transition-all duration-200"
             />
+
             <div className="flex justify-between gap-2">
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="default"
-                    onClick={() => setMessages([])}
-                    title="Clear messages"
-                >
-                    <Trash className="mr-2 h-4 w-4" />
-                    Start a new conversation
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="default"
+                        onClick={() => setMessages([])}
+                        title="Clear messages"
+                    >
+                        <Trash className="mr-2 h-4 w-4" />
+                        Start a new conversation
+                    </Button>
+
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={triggerFileInput}
+                        disabled={status === "streaming"}
+                        title="Upload image"
+                    >
+                        <ImageIcon className="h-4 w-4" />
+                    </Button>
+
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        onChange={handleFileChange}
+                        accept="image/*"
+                        multiple
+                        disabled={status === "streaming"}
+                    />
+                </div>
+
                 <Button
                     type="submit"
                     disabled={status === "streaming" || !input.trim()}

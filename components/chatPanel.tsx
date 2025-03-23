@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useRef, useEffect, useState } from "react"
+import Image from "next/image"
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -17,6 +18,9 @@ interface ChatPanelProps {
 export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelProps) {
     // Add a step counter to track updates
     const stepCounterRef = useRef<number>(0);
+    // Add state for file attachments
+    const [files, setFiles] = useState<FileList | undefined>(undefined);
+
     // Remove the currentXmlRef and related useEffect
     const { messages, input, handleInputChange, handleSubmit, status, error, setInput, setMessages, data } = useChat({
         maxSteps: 5,
@@ -63,11 +67,21 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
                     """
                     `
                 )
-                handleSubmit(e)
+                handleSubmit(e, {
+                    experimental_attachments: files,
+                })
+
+                // Clear files after submission
+                setFiles(undefined);
             } catch (error) {
                 console.error("Error fetching chart data:", error);
             }
         }
+    }
+
+    // Helper function to handle file changes
+    const handleFileChange = (newFiles: FileList | undefined) => {
+        setFiles(newFiles);
     }
 
     // Helper function to render tool invocations
@@ -166,6 +180,25 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
                                         message.content
                                     )}
                                 </div>
+
+                                {/* Display image attachments */}
+                                {message?.experimental_attachments?.filter(attachment =>
+                                    attachment?.contentType?.startsWith('image/')
+                                ).map((attachment, index) => (
+                                    <div key={`${message.id}-${index}`} className={`mt-2 ${message.role === "user" ? "text-right" : "text-left"}`}>
+                                        <div className="inline-block">
+                                            <Image
+                                                src={attachment.url}
+                                                width={200}
+                                                height={200}
+                                                alt={attachment.name ?? `attachment-${index}`}
+                                                className="rounded-md border"
+                                                style={{ objectFit: 'contain' }}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+
                                 {/* Legacy support for function_call format */}
                                 {(message as any).function_call && (
                                     <div className="mt-2 text-left">
@@ -192,6 +225,8 @@ export default function ChatPanel({ onDisplayChart, onFetchChart }: ChatPanelPro
                     onSubmit={onFormSubmit}
                     onChange={handleInputChange}
                     setMessages={setMessages}
+                    files={files}
+                    onFileChange={handleFileChange}
                 />
             </CardFooter>
         </Card>
