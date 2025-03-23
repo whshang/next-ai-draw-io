@@ -254,11 +254,11 @@ export default function ChatPanel({
     );
 
     return (
-        <Card className="h-full flex flex-col rounded-none py-0">
+        <Card className="h-full flex flex-col rounded-none py-0 gap-0">
             <CardHeader className="p-4 text-center">
                 <CardTitle>Next-AI-Drawio</CardTitle>
             </CardHeader>
-            <CardContent className="flex-grow overflow-hidden p-4">
+            <CardContent className="flex-grow overflow-hidden px-2">
                 <ScrollArea className="h-full pr-4">
                     {messages.length === 0
                         ? examplePanel

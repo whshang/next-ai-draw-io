@@ -212,7 +212,7 @@ export function ChatInput({
                 placeholder="Describe what changes you want to make to the diagram... (Press Cmd/Ctrl + Enter to send)"
                 disabled={status === "streaming"}
                 aria-label="Chat input"
-                className="min-h-[80px] resize-none transition-all duration-200"
+                className="min-h-[80px] resize-none transition-all duration-200 px-1 py-0"
             />
 
             <div className="flex items-center gap-2">
