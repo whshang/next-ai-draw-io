@@ -3,7 +3,14 @@
 import React, { useCallback, useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Send, RotateCcw, Image as ImageIcon, X } from "lucide-react";
+import {
+    Loader2,
+    Send,
+    RotateCcw,
+    Image as ImageIcon,
+    X,
+    History,
+} from "lucide-react";
 import {
     Tooltip,
     TooltipContent,
@@ -30,6 +37,10 @@ interface ChatInputProps {
     onDisplayChart: (xml: string) => void;
     files?: FileList;
     onFileChange?: (files: FileList | undefined) => void;
+    diagramHistory?: { svg: string; xml: string }[];
+    onSelectHistoryItem?: (xml: string) => void;
+    showHistory?: boolean;
+    setShowHistory?: (show: boolean) => void;
 }
 
 export function ChatInput({
@@ -41,6 +52,10 @@ export function ChatInput({
     onDisplayChart,
     files,
     onFileChange,
+    diagramHistory = [],
+    onSelectHistoryItem = () => {},
+    showHistory = false,
+    setShowHistory = () => {},
 }: ChatInputProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -250,8 +265,87 @@ export function ChatInput({
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
+
+                    {/* History Dialog */}
+                    <Dialog open={showHistory} onOpenChange={setShowHistory}>
+                        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Diagram History</DialogTitle>
+                                <DialogDescription>
+                                    Click on a diagram to restore it
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            {diagramHistory.length === 0 ? (
+                                <div className="text-center p-4 text-gray-500">
+                                    No history available yet. Send messages to
+                                    create diagram history.
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-4">
+                                    {diagramHistory.map((item, index) => (
+                                        <div
+                                            key={index}
+                                            className="border rounded-md p-2 cursor-pointer hover:border-primary transition-colors"
+                                            onClick={() =>
+                                                onSelectHistoryItem(item.xml)
+                                            }
+                                        >
+                                            <div className="aspect-video bg-white rounded overflow-hidden flex items-center justify-center">
+                                                <Image
+                                                    src={item.svg}
+                                                    alt={`Diagram version ${
+                                                        index + 1
+                                                    }`}
+                                                    width={200}
+                                                    height={100}
+                                                    className="object-cover w-full h-full"
+                                                />
+                                            </div>
+                                            <div className="text-xs text-center mt-1 text-gray-500">
+                                                Version {index + 1}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <DialogFooter>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setShowHistory(false)}
+                                >
+                                    Close
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </div>
                 <div className="flex gap-2">
+                    {/* History Button */}
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => setShowHistory(true)}
+                                    disabled={
+                                        status === "streaming" ||
+                                        diagramHistory.length === 0
+                                    }
+                                    title="Diagram History"
+                                >
+                                    <History className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                View diagram history
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+
                     <Button
                         type="button"
                         variant="outline"

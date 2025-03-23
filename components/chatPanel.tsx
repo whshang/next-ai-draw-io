@@ -19,17 +19,23 @@ import { convertToLegalXml } from "@/lib/utils";
 interface ChatPanelProps {
     onDisplayChart: (xml: string) => void;
     onFetchChart: () => Promise<string>;
+    diagramHistory?: { svg: string; xml: string }[];
+    onAddToHistory?: () => void;
 }
 
 export default function ChatPanel({
     onDisplayChart,
     onFetchChart,
+    diagramHistory = [],
+    onAddToHistory = () => {},
 }: ChatPanelProps) {
     // Add a step counter to track updates
     const stepCounterRef = useRef<number>(0);
     // Add state for file attachments
     const [files, setFiles] = useState<FileList | undefined>(undefined);
     // Add state to control visibility of prompt examples panel
+    // Add state for showing the history dialog
+    const [showHistory, setShowHistory] = useState(false);
 
     // Remove the currentXmlRef and related useEffect
     const {
@@ -93,6 +99,9 @@ export default function ChatPanel({
                     experimental_attachments: files,
                 });
 
+                // Add current diagram to history after submission
+                onAddToHistory();
+
                 // Clear files after submission
                 setFiles(undefined);
             } catch (error) {
@@ -128,6 +137,12 @@ export default function ChatPanel({
         } catch (error) {
             console.error("Error loading example image:", error);
         }
+    };
+
+    // Function to handle history item selection
+    const handleSelectHistoryItem = (xml: string) => {
+        onDisplayChart(xml);
+        setShowHistory(false);
     };
 
     // Helper function to render tool invocations
@@ -356,6 +371,10 @@ export default function ChatPanel({
                     onDisplayChart={onDisplayChart}
                     files={files}
                     onFileChange={handleFileChange}
+                    diagramHistory={diagramHistory}
+                    onSelectHistoryItem={handleSelectHistoryItem}
+                    showHistory={showHistory}
+                    setShowHistory={setShowHistory}
                 />
             </CardFooter>
         </Card>

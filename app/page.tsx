@@ -11,6 +11,12 @@ export default function Home() {
     const [chartXML, setChartXML] = useState<string>("");
     // Add a ref to store the resolver function
     const resolverRef = useRef<((value: string) => void) | null>(null);
+    // Add state for diagram history
+    const [diagramHistory, setDiagramHistory] = useState<
+        { svg: string; xml: string }[]
+    >([]);
+    // Add state for latest SVG
+    const [latestSvg, setLatestSvg] = useState<string>("");
 
     const handleExport = () => {
         if (drawioRef.current) {
@@ -28,6 +34,16 @@ export default function Home() {
         }
     };
 
+    // Add function to add current diagram to history
+    const addToHistory = () => {
+        if (latestSvg && chartXML) {
+            setDiagramHistory((prev) => [
+                ...prev,
+                { svg: latestSvg, xml: chartXML },
+            ]);
+        }
+    };
+
     return (
         <div className="flex h-screen bg-gray-100">
             <div className="w-2/3 p-1">
@@ -36,6 +52,8 @@ export default function Home() {
                     onExport={(data) => {
                         const extractedXML = extractDiagramXML(data.data);
                         setChartXML(extractedXML);
+                        // Store the latest SVG data
+                        setLatestSvg(data.data);
                         // If there's a pending resolver, resolve it with the fresh XML
                         if (resolverRef.current) {
                             resolverRef.current(extractedXML);
@@ -61,6 +79,8 @@ export default function Home() {
                             handleExport();
                         });
                     }}
+                    diagramHistory={diagramHistory}
+                    onAddToHistory={addToHistory}
                 />
             </div>
         </div>
