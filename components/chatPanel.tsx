@@ -30,7 +30,6 @@ export default function ChatPanel({
     // Add state for file attachments
     const [files, setFiles] = useState<FileList | undefined>(undefined);
     // Add state to control visibility of prompt examples panel
-    const [showExamples, setShowExamples] = useState<boolean>(true);
 
     // Remove the currentXmlRef and related useEffect
     const {
@@ -73,7 +72,6 @@ export default function ChatPanel({
         if (input.trim() && status !== "streaming") {
             try {
                 // Hide examples panel after sending a message
-                setShowExamples(false);
 
                 // Fetch chart data before setting input
                 const chartXml = await onFetchChart();
@@ -149,7 +147,7 @@ export default function ChatPanel({
                         // Determine whether to show details based on a simple threshold
                         // Rather than comparing lengths (which can cause re-renders)
                         if (
-                            stepCounterRef.current >= 20 &&
+                            stepCounterRef.current >= 50 &&
                             stepCounterRef.current % 20 === 0
                         ) {
                             onDisplayChart(convertToLegalXml(currentXml));
@@ -215,6 +213,34 @@ export default function ChatPanel({
         }
     };
 
+    const examplePanel = (
+        <div className="px-4 py-2 border-t border-b border-gray-100">
+            <p className="text-sm text-gray-500 mb-2">
+                {" "}
+                Start a conversation to generate or modify diagrams.
+            </p>
+            <p className="text-sm text-gray-500 mb-2">
+                {" "}
+                You can also upload images to use as references.
+            </p>
+            <p className="text-sm text-gray-500 mb-2">Try these examples:</p>
+            <div className="flex flex-wrap gap-5">
+                <button
+                    className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1 px-2 rounded"
+                    onClick={handleReplicateFlowchart}
+                >
+                    Replicate this flowchart
+                </button>
+                <button
+                    className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1 px-2 rounded"
+                    onClick={() => setInput("Draw a cat for me")}
+                >
+                    Draw a cat for me
+                </button>
+            </div>
+        </div>
+    );
+
     return (
         <Card className="h-full flex flex-col rounded-none py-0">
             <CardHeader className="p-4 text-center">
@@ -222,106 +248,95 @@ export default function ChatPanel({
             </CardHeader>
             <CardContent className="flex-grow overflow-hidden p-4">
                 <ScrollArea className="h-full pr-4">
-                    {messages.length === 0 ? (
-                        <div className="text-center text-gray-500 mt-8">
-                            <p>
-                                Start a conversation to generate or modify
-                                diagrams.
-                            </p>
-                            <p className="text-sm mt-2">
-                                Try: "Create a flowchart for user
-                                authentication"
-                            </p>
-                        </div>
-                    ) : (
-                        messages.map((message) => (
-                            <div
-                                key={message.id}
-                                className={`mb-4 ${
-                                    message.role === "user"
-                                        ? "text-right"
-                                        : "text-left"
-                                }`}
-                            >
-                                <div
-                                    className={`inline-block px-4 py-2 whitespace-pre-wrap text-sm rounded-lg max-w-[85%] break-words ${
-                                        message.role === "user"
-                                            ? "bg-primary text-primary-foreground"
-                                            : "bg-muted text-muted-foreground"
-                                    }`}
-                                >
-                                    {/* Render message content based on parts if available */}
-                                    {message.parts
-                                        ? message.parts.map((part, index) => {
-                                              switch (part.type) {
-                                                  case "text":
-                                                      return (
-                                                          <div key={index}>
-                                                              {part.text}
-                                                          </div>
-                                                      );
-                                                  case "tool-invocation":
-                                                      return renderToolInvocation(
-                                                          part.toolInvocation
-                                                      );
-                                                  default:
-                                                      return null;
+                    {messages.length === 0
+                        ? examplePanel
+                        : messages.map((message) => (
+                              <div
+                                  key={message.id}
+                                  className={`mb-4 ${
+                                      message.role === "user"
+                                          ? "text-right"
+                                          : "text-left"
+                                  }`}
+                              >
+                                  <div
+                                      className={`inline-block px-4 py-2 whitespace-pre-wrap text-sm rounded-lg max-w-[85%] break-words ${
+                                          message.role === "user"
+                                              ? "bg-primary text-primary-foreground"
+                                              : "bg-muted text-muted-foreground"
+                                      }`}
+                                  >
+                                      {/* Render message content based on parts if available */}
+                                      {message.parts
+                                          ? message.parts.map((part, index) => {
+                                                switch (part.type) {
+                                                    case "text":
+                                                        return (
+                                                            <div key={index}>
+                                                                {part.text}
+                                                            </div>
+                                                        );
+                                                    case "tool-invocation":
+                                                        return renderToolInvocation(
+                                                            part.toolInvocation
+                                                        );
+                                                    default:
+                                                        return null;
+                                                }
+                                            })
+                                          : // Fallback to simple content for older format
+                                            message.content}
+                                  </div>
+
+                                  {/* Display image attachments */}
+                                  {message?.experimental_attachments
+                                      ?.filter((attachment) =>
+                                          attachment?.contentType?.startsWith(
+                                              "image/"
+                                          )
+                                      )
+                                      .map((attachment, index) => (
+                                          <div
+                                              key={`${message.id}-${index}`}
+                                              className={`mt-2 ${
+                                                  message.role === "user"
+                                                      ? "text-right"
+                                                      : "text-left"
+                                              }`}
+                                          >
+                                              <div className="inline-block">
+                                                  <Image
+                                                      src={attachment.url}
+                                                      width={200}
+                                                      height={200}
+                                                      alt={
+                                                          attachment.name ??
+                                                          `attachment-${index}`
+                                                      }
+                                                      className="rounded-md border"
+                                                      style={{
+                                                          objectFit: "contain",
+                                                      }}
+                                                  />
+                                              </div>
+                                          </div>
+                                      ))}
+
+                                  {/* Legacy support for function_call format */}
+                                  {(message as any).function_call && (
+                                      <div className="mt-2 text-left">
+                                          <div className="text-xs text-gray-500">
+                                              Using tool:{" "}
+                                              {
+                                                  (message as any).function_call
+                                                      .name
                                               }
-                                          })
-                                        : // Fallback to simple content for older format
-                                          message.content}
-                                </div>
-
-                                {/* Display image attachments */}
-                                {message?.experimental_attachments
-                                    ?.filter((attachment) =>
-                                        attachment?.contentType?.startsWith(
-                                            "image/"
-                                        )
-                                    )
-                                    .map((attachment, index) => (
-                                        <div
-                                            key={`${message.id}-${index}`}
-                                            className={`mt-2 ${
-                                                message.role === "user"
-                                                    ? "text-right"
-                                                    : "text-left"
-                                            }`}
-                                        >
-                                            <div className="inline-block">
-                                                <Image
-                                                    src={attachment.url}
-                                                    width={200}
-                                                    height={200}
-                                                    alt={
-                                                        attachment.name ??
-                                                        `attachment-${index}`
-                                                    }
-                                                    className="rounded-md border"
-                                                    style={{
-                                                        objectFit: "contain",
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
-
-                                {/* Legacy support for function_call format */}
-                                {(message as any).function_call && (
-                                    <div className="mt-2 text-left">
-                                        <div className="text-xs text-gray-500">
-                                            Using tool:{" "}
-                                            {
-                                                (message as any).function_call
-                                                    .name
-                                            }
-                                            ...
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))
-                    )}
+                                              ...
+                                          </div>
+                                      </div>
+                                  )}
+                              </div>
+                          ))}
                     {error && (
                         <div className="text-red-500 text-sm mt-2">
                             Error: {error.message}
@@ -330,29 +345,6 @@ export default function ChatPanel({
                     <div ref={messagesEndRef} />
                 </ScrollArea>
             </CardContent>
-
-            {/* Conditionally render Prompt Examples Panel */}
-            {showExamples && (
-                <div className="px-4 py-2 border-t border-b border-gray-100">
-                    <p className="text-sm text-gray-500 mb-2">
-                        Try these examples:
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                        <button
-                            className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1 px-2 rounded"
-                            onClick={() => setInput("Draw a cat for me.")}
-                        >
-                            Draw a cat for me.
-                        </button>
-                        <button
-                            className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-1 px-2 rounded"
-                            onClick={handleReplicateFlowchart}
-                        >
-                            Replicate this flowchart
-                        </button>
-                    </div>
-                </div>
-            )}
 
             <CardFooter className="p-2">
                 <ChatInput

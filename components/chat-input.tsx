@@ -10,6 +10,15 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 import Image from "next/image";
 
 interface ChatInputProps {
@@ -36,6 +45,7 @@ export function ChatInput({
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [showClearDialog, setShowClearDialog] = useState(false);
 
     // Auto-resize textarea based on content
     const adjustTextareaHeight = useCallback(() => {
@@ -120,6 +130,20 @@ export function ChatInput({
         }
     };
 
+    // Handle clearing conversation and diagram
+    const handleClear = () => {
+        setMessages([]);
+        onDisplayChart(`<mxfile host="embed.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36" version="26.1.1">
+            <diagram name="Page-1" id="NsivuNt5aJDXaP8udwGv">
+                <mxGraphModel dx="394" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+                    <root>
+                    </root>
+                </mxGraphModel>
+            </diagram>
+        </mxfile>`);
+        setShowClearDialog(false);
+    };
+
     return (
         <form
             onSubmit={onSubmit}
@@ -185,17 +209,7 @@ export function ChatInput({
                                     type="button"
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => {
-                                        setMessages([]);
-                                        onDisplayChart(`<mxfile host="embed.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36" version="26.1.1">
-                                            <diagram name="Page-1" id="NsivuNt5aJDXaP8udwGv">
-                                                <mxGraphModel dx="394" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
-                                                    <root>
-                                                    </root>
-                                                </mxGraphModel>
-                                            </diagram>
-                                        </mxfile>`);
-                                    }}
+                                    onClick={() => setShowClearDialog(true)}
                                 >
                                     <RotateCcw className="mr-2 h-4 w-4" />
                                 </Button>
@@ -205,6 +219,37 @@ export function ChatInput({
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
+
+                    {/* Warning Modal */}
+                    <Dialog
+                        open={showClearDialog}
+                        onOpenChange={setShowClearDialog}
+                    >
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Clear Everything?</DialogTitle>
+                                <DialogDescription>
+                                    This will clear the current conversation and
+                                    reset the diagram. This action cannot be
+                                    undone.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setShowClearDialog(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    onClick={handleClear}
+                                >
+                                    Clear Everything
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </div>
                 <div className="flex gap-2">
                     <Button
