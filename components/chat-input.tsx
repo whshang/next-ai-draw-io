@@ -49,6 +49,34 @@ export function ChatInput({
         adjustTextareaHeight();
     }, [input, adjustTextareaHeight]);
 
+    // Handle clipboard paste events
+    const handlePaste = useCallback(
+        (e: React.ClipboardEvent) => {
+            if (!onFileChange) return;
+
+            const items = e.clipboardData.items;
+            const imageItems = Array.from(items).filter(
+                (item) => item.type.indexOf("image") !== -1
+            );
+
+            if (imageItems.length > 0) {
+                e.preventDefault();
+
+                // Convert clipboard image to File
+                const file = imageItems[0].getAsFile();
+                if (file) {
+                    // Create a new FileList-like object
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+
+                    // Pass to the existing file handler
+                    onFileChange(dataTransfer.files);
+                }
+            }
+        },
+        [onFileChange]
+    );
+
     // Handle keyboard shortcuts
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
@@ -122,6 +150,7 @@ export function ChatInput({
                 value={input}
                 onChange={onChange}
                 onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
                 placeholder="Describe what changes you want to make to the diagram... (Press Cmd/Ctrl + Enter to send)"
                 disabled={status === "streaming"}
                 aria-label="Chat input"
