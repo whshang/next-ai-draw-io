@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "./scripts/start-clean.sh next dev --turbopack",
-    "build": "./scripts/start-clean.sh next build",
-    "start": "./scripts/start-clean.sh next start",
+    "dev": "./scripts/dev-start.sh next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
     "lint": "next lint",
     "check-env": "node scripts/check-env.js",
+    "dev:clean": "./scripts/start-clean.sh next dev --turbopack",
     "dev:unsafe": "next dev --turbopack"
   },
   "dependencies": {
