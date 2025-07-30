@@ -31,7 +31,7 @@ Diagrams are represented as XML that can be rendered in draw.io. The AI processe
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/DayuanJiang/next-ai-draw-io
+git clone https://github.com/whshang/next-ai-draw-io
 cd next-ai-draw-io
 ```
 
@@ -45,10 +45,25 @@ yarn install
 
 3. Create a `.env.local` file in the root directory with the following variables:
 
-```
+```env
+# OpenAI API 配置
 OPENAI_API_KEY=your_openai_api_key_here
-# Add any other required environment variables
+OPENAI_BASE_URL=your_openai_base_url_here
+OPENAI_MODEL=your_openai_model_here
+
+# 可选：其他 AI 服务配置
+# OPENROUTER_API_KEY=your_openrouter_api_key_here
 ```
+
+### 环境变量说明
+
+- **OPENAI_API_KEY**: OpenAI API 密钥（必需）
+- **OPENAI_BASE_URL**: OpenAI API 基础 URL（可选，默认为 OpenAI 官方 API）
+  - 例如：`https://open.bigmodel.cn/api/paas/v4` (智谱 GLM)
+  - 例如：`https://api.openai.com/v1` (OpenAI 官方)
+- **OPENAI_MODEL**: 要使用的模型名称（可选，默认为 `gpt-4o`）
+  - 例如：`glm-4.5`, `gpt-4o`, `gpt-3.5-turbo` 等
+- **OPENROUTER_API_KEY**: OpenRouter API 密钥（如需使用其他模型提供商）
 
 4. Run the development server:
 
@@ -65,7 +80,7 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 Or you can deploy by this button.
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FDayuanJiang%2Fnext-ai-draw-io)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fwhshang%2Fnext-ai-draw-io)
 
 ## Project Structure
 

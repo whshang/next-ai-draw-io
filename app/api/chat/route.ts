@@ -1,5 +1,5 @@
 import { bedrock } from '@ai-sdk/amazon-bedrock';
-import { openai } from '@ai-sdk/openai';
+import { createOpenAI } from '@ai-sdk/openai';
 import { google } from '@ai-sdk/google';
 import { smoothStream, streamText } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
@@ -10,6 +10,12 @@ import { z } from "zod";
 
 export const maxDuration = 60
 const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
+
+// 配置自定义 OpenAI 客户端
+const customOpenAI = createOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: process.env.OPENAI_BASE_URL,
+});
 // Read the XML guide from file
 export async function POST(req: Request) {
   const body = await req.json();
@@ -66,7 +72,7 @@ ${lastMessage.content}
     // model: google("gemini-2.5-flash-preview-05-20"),
     // model: google("gemini-2.0-flash-001"),
     // model: bedrock('anthropic.claude-3-5-sonnet-20241022-v2:0'),
-    model: openai("gpt-4.1"),
+    model: customOpenAI(process.env.OPENAI_MODEL || "gpt-4o"),
     // model: openrouter('google/gemini-2.5-pro-exp-03-25'),
     // model: model,
     // providerOptions: {
