@@ -105,6 +105,14 @@ public/               # Static assets including example images
 
 This project is licensed under the MIT License.
 
+## Acknowledgments
+
+This project is forked from the original work by [DayuanJiang](https://github.com/DayuanJiang). 
+
+**Original Project**: [https://github.com/DayuanJiang/next-ai-draw-io](https://github.com/DayuanJiang/next-ai-draw-io)
+
+Special thanks to the original author for creating this innovative AI-powered draw.io integration. This fork includes additional configurations and enhancements while maintaining the core functionality and vision of the original project.
+
 ## Support & Contact
 
 For support or inquiries, please open an issue on the GitHub repository.
