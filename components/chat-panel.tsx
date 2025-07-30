@@ -112,7 +112,7 @@ export default function ChatPanel() {
             <CardHeader className="p-4 flex justify-between items-center">
                 <CardTitle>Next-AI-Drawio</CardTitle>
                 <a
-                    href="https://github.com/DayuanJiang/next-ai-draw-io"
+                    href="https://github.com/whshang/next-ai-draw-io"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-600 hover:text-gray-900 transition-colors"

@@ -107,8 +107,6 @@ This project is licensed under the MIT License.
 
 ## Support & Contact
 
-For support or inquiries, please open an issue on the GitHub repository or contact the maintainer at:
-
--   Email: me[at]jiang.jp
+For support or inquiries, please open an issue on the GitHub repository.
 
 ---
