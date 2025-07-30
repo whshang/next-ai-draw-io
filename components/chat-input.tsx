@@ -26,6 +26,7 @@ interface ChatInputProps {
     onFileChange?: (files: File[]) => void;
     showHistory?: boolean;
     onToggleHistory?: (show: boolean) => void;
+    isReadingCanvas?: boolean;
 }
 
 export function ChatInput({
@@ -38,6 +39,7 @@ export function ChatInput({
     onFileChange = () => {},
     showHistory = false,
     onToggleHistory = () => {},
+    isReadingCanvas = false,
 }: ChatInputProps) {
     const { diagramHistory } = useDiagram();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -180,9 +182,7 @@ export function ChatInput({
                 onChange={onChange}
                 onKeyDown={handleKeyDown}
                 onPaste={handlePaste}
-                placeholder="Describe what changes you want to make to the diagram
-                or upload(paste) an image to replicate a diagram.
-                 (Press Cmd/Ctrl + Enter to send)"
+                placeholder="描述你想对图表做什么修改，或上传图片来复制图表。AI可以看到当前画布内容并基于它进行修改。(按 Cmd/Ctrl + Enter 发送)"
                 disabled={status === "streaming"}
                 aria-label="Chat input"
                 className="min-h-[80px] resize-none transition-all duration-200 px-1 py-0"
@@ -253,20 +253,32 @@ export function ChatInput({
 
                 <Button
                     type="submit"
-                    disabled={status === "streaming" || !input.trim()}
+                    disabled={status === "streaming" || !input.trim() || isReadingCanvas}
                     className="transition-opacity"
                     aria-label={
-                        status === "streaming"
+                        isReadingCanvas
+                            ? "Reading canvas..."
+                            : status === "streaming"
                             ? "Sending message..."
                             : "Send message"
                     }
                 >
-                    {status === "streaming" ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isReadingCanvas ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Reading Canvas
+                        </>
+                    ) : status === "streaming" ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Send
+                        </>
                     ) : (
-                        <Send className="mr-2 h-4 w-4" />
+                        <>
+                            <Send className="mr-2 h-4 w-4" />
+                            Send
+                        </>
                     )}
-                    Send
                 </Button>
             </div>
         </form>

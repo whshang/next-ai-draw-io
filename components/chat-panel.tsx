@@ -14,8 +14,9 @@ import {
 import { useChat } from "@ai-sdk/react";
 import { ChatInput } from "@/components/chat-input";
 import { ChatMessageDisplay } from "./chat-message-display";
+import { CanvasPreview } from "@/components/canvas-preview";
+import { InteractionHints } from "@/components/interaction-hints";
 import { useDiagram } from "@/contexts/diagram-context";
-import { replaceNodes } from "@/lib/utils";
 
 export default function ChatPanel() {
     const {
@@ -40,6 +41,8 @@ export default function ChatPanel() {
     const [files, setFiles] = useState<File[]>([]);
     // Add state for showing the history dialog
     const [showHistory, setShowHistory] = useState(false);
+    // Add state for reading canvas
+    const [isReadingCanvas, setIsReadingCanvas] = useState(false);
 
     // Convert File[] to FileList for experimental_attachments
     const createFileList = (files: File[]): FileList => {
@@ -84,8 +87,11 @@ export default function ChatPanel() {
         e.preventDefault();
         if (input.trim() && status !== "streaming") {
             try {
+                setIsReadingCanvas(true);
                 // Fetch chart data before setting input
                 const chartXml = await onFetchChart();
+                setIsReadingCanvas(false);
+                
                 handleSubmit(e, {
                     data: {
                         xml: chartXml,
@@ -98,6 +104,7 @@ export default function ChatPanel() {
                 setFiles([]);
             } catch (error) {
                 console.error("Error fetching chart data:", error);
+                setIsReadingCanvas(false);
             }
         }
     };
@@ -129,7 +136,11 @@ export default function ChatPanel() {
                 />
             </CardContent>
 
-            <CardFooter className="p-2">
+            <CardFooter className="p-2 flex-col gap-2">
+                <CanvasPreview />
+                {messages.length === 0 && (
+                    <InteractionHints onSuggestionClick={setInput} />
+                )}
                 <ChatInput
                     input={input}
                     status={status}
@@ -143,6 +154,7 @@ export default function ChatPanel() {
                     onFileChange={handleFileChange}
                     showHistory={showHistory}
                     onToggleHistory={setShowHistory}
+                    isReadingCanvas={isReadingCanvas}
                 />
             </CardFooter>
         </Card>

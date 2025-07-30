@@ -55,15 +55,34 @@ here is a guide for the XML format: ${guide}
 `;
 
   const lastMessage = messages[messages.length - 1];
-  const formattedContent = `
-Current diagram XML:
+  const hasExistingDiagram = data.xml && data.xml.trim() !== '';
+  
+  const formattedContent = hasExistingDiagram ? `
+Current diagram XML (用户画布中的现有内容):
 """xml
-${data.xml || ''}
+${data.xml}
 """
-User input:
+
+User request (用户请求):
 """md
 ${lastMessage.content}
-"""`;
+"""
+
+Instructions: 
+- 用户可以看到当前画布中的图表内容
+- 如果用户要求修改、扩展或基于现有内容进行操作，请分析当前XML并相应地修改
+- 如果用户要求创建全新的图表，可以忽略现有内容
+- 保持现有元素的ID和结构，除非用户明确要求更改
+` : `
+User request (用户请求 - 画布为空):
+"""md
+${lastMessage.content}
+"""
+
+Instructions: 
+- 当前画布为空，请根据用户请求创建新的图表
+`;
+  
   let enhancedMessages = [{ role: "system", content: systemMessage }, ...messages];
   enhancedMessages = [...enhancedMessages.slice(0, -1), { ...lastMessage, content: formattedContent }];
   // console.log("Enhanced messages:", enhancedMessages);

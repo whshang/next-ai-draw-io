@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "./scripts/start-clean.sh next dev --turbopack",
+    "build": "./scripts/start-clean.sh next build",
+    "start": "./scripts/start-clean.sh next start",
+    "lint": "next lint",
+    "check-env": "node scripts/check-env.js",
+    "dev:unsafe": "next dev --turbopack"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^2.2.9",
